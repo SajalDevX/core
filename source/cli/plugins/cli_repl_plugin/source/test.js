@@ -44,6 +44,23 @@ assert.deepEqual(repl_parse('help'),
 assert.deepEqual(repl_parse('debug a b c 1 2 3'),
 	['debug', ['a', 'b', 'c', '1', '2', '3']]);
 
+/* A loader tag must be a whole token, a regex matching only its prefix must not be accepted */
+assert.throws(() => {
+	repl_parse('load python a.py b.py');
+}, /the token 'py' matched by the regex .* must be followed by a whitespace or the end of the command/);
+
+assert.throws(() => {
+	repl_parse('eval nodejs console.log("hello world")');
+}, /the token 'node' matched by the regex .* must be followed by a whitespace or the end of the command/);
+
+assert.throws(() => {
+	repl_parse('clear csharp a.cs');
+}, /the token 'cs' matched by the regex .* must be followed by a whitespace or the end of the command/);
+
+assert.throws(() => {
+	repl_parse('load tsx a.ts');
+}, /the token 'ts' matched by the regex .* must be followed by a whitespace or the end of the command/);
+
 /* Unit Test */
 const letters = '^[a-zA-Z]+';
 const numbers = '^[0-9]+';
@@ -59,3 +76,12 @@ repl_register_map({
 
 assert.deepEqual(repl_parse('string_array_string yeet 1 2 3 4 5555 6 7 8 9 yeet'),
 	['string_array_string', 'yeet', ['1', '2', '3', '4', '5555', '6', '7', '8', '9'], 'yeet']);
+
+/* An array value matching only a prefix of a token must not be accepted either */
+assert.throws(() => {
+	repl_parse('string_array_string yeet 1 2x 3 yeet');
+}, /Failed to parse the command: '2x 3 yeet' of type METACALL_STRING/);
+
+assert.throws(() => {
+	repl_parse('string_array_string yeet1 2 3 yeet');
+}, /the token 'yeet' matched by the regex .* must be followed by a whitespace or the end of the command/);
